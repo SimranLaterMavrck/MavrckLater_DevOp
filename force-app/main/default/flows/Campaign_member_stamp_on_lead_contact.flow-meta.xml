@@ -1,0 +1,329 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Flow xmlns="http://soap.sforce.com/2006/04/metadata">
+    <actionCalls>
+        <name>Campaign_notice_Contact</name>
+        <label>Campaign notice Contact</label>
+        <locationX>143</locationX>
+        <locationY>600</locationY>
+        <actionName>emailSimple</actionName>
+        <actionType>emailSimple</actionType>
+        <connector>
+            <targetReference>Demo_Request</targetReference>
+        </connector>
+        <flowTransactionModel>CurrentTransaction</flowTransactionModel>
+        <inputParameters>
+            <name>emailAddresses</name>
+            <value>
+                <elementReference>$Record.Contact.Owner.Email</elementReference>
+            </value>
+        </inputParameters>
+        <inputParameters>
+            <name>senderAddress</name>
+            <value>
+                <stringValue>branden@mavrck.co</stringValue>
+            </value>
+        </inputParameters>
+        <inputParameters>
+            <name>emailSubject</name>
+            <value>
+                <elementReference>ContactSubject</elementReference>
+            </value>
+        </inputParameters>
+        <inputParameters>
+            <name>emailBody</name>
+            <value>
+                <elementReference>CampaignContact</elementReference>
+            </value>
+        </inputParameters>
+        <nameSegment>emailSimple</nameSegment>
+        <versionSegment>1</versionSegment>
+    </actionCalls>
+    <actionCalls>
+        <name>Copy_1_of_Campaign_notice_Contact</name>
+        <label>Copy 1 of Campaign notice Contact</label>
+        <locationX>407</locationX>
+        <locationY>600</locationY>
+        <actionName>emailSimple</actionName>
+        <actionType>emailSimple</actionType>
+        <connector>
+            <targetReference>Demo_Request</targetReference>
+        </connector>
+        <flowTransactionModel>CurrentTransaction</flowTransactionModel>
+        <inputParameters>
+            <name>emailAddresses</name>
+            <value>
+                <elementReference>$Record.Lead.Owner:User.Email</elementReference>
+            </value>
+        </inputParameters>
+        <inputParameters>
+            <name>senderAddress</name>
+            <value>
+                <stringValue>branden@mavrck.co</stringValue>
+            </value>
+        </inputParameters>
+        <inputParameters>
+            <name>emailSubject</name>
+            <value>
+                <elementReference>LeadSubject</elementReference>
+            </value>
+        </inputParameters>
+        <inputParameters>
+            <name>emailBody</name>
+            <value>
+                <elementReference>LeadCampaign</elementReference>
+            </value>
+        </inputParameters>
+        <nameSegment>emailSimple</nameSegment>
+        <versionSegment>1</versionSegment>
+    </actionCalls>
+    <actionCalls>
+        <name>Demo_notice</name>
+        <label>Demo notice</label>
+        <locationX>143</locationX>
+        <locationY>900</locationY>
+        <actionName>slackPostMessage</actionName>
+        <actionType>slackPostMessage</actionType>
+        <flowTransactionModel>CurrentTransaction</flowTransactionModel>
+        <inputParameters>
+            <name>slackAppIdForToken</name>
+            <value>
+                <stringValue>A03269G3DNE</stringValue>
+            </value>
+        </inputParameters>
+        <inputParameters>
+            <name>slackWorkspaceIdForToken</name>
+            <value>
+                <stringValue>T032DFUNJ</stringValue>
+            </value>
+        </inputParameters>
+        <inputParameters>
+            <name>slackConversationId</name>
+            <value>
+                <stringValue>C054A97JSVC</stringValue>
+            </value>
+        </inputParameters>
+        <inputParameters>
+            <name>slackMessage</name>
+            <value>
+                <elementReference>SlackNoticeDemo</elementReference>
+            </value>
+        </inputParameters>
+        <nameSegment>slackPostMessage</nameSegment>
+        <storeOutputAutomatically>true</storeOutputAutomatically>
+        <versionSegment>1</versionSegment>
+    </actionCalls>
+    <apiVersion>58.0</apiVersion>
+    <decisions>
+        <description>Send a slack notice</description>
+        <name>Demo_Request</name>
+        <label>Demo Request</label>
+        <locationX>275</locationX>
+        <locationY>792</locationY>
+        <defaultConnectorLabel>Default Outcome</defaultConnectorLabel>
+        <rules>
+            <name>Demo_Slack_notice</name>
+            <conditionLogic>or</conditionLogic>
+            <conditions>
+                <leftValueReference>$Record.Campaign.OwnerId</leftValueReference>
+                <operator>EqualTo</operator>
+                <rightValue>
+                    <elementReference>$Label.MarketoSyncUser</elementReference>
+                </rightValue>
+            </conditions>
+            <connector>
+                <targetReference>Demo_notice</targetReference>
+            </connector>
+            <label>Demo Slack notice</label>
+        </rules>
+    </decisions>
+    <decisions>
+        <name>Is_it_a_contact</name>
+        <label>Is it a contact?</label>
+        <locationX>275</locationX>
+        <locationY>384</locationY>
+        <defaultConnector>
+            <targetReference>Lead_update</targetReference>
+        </defaultConnector>
+        <defaultConnectorLabel>Default Outcome</defaultConnectorLabel>
+        <rules>
+            <name>Contact_vs_Lead</name>
+            <conditionLogic>and</conditionLogic>
+            <conditions>
+                <leftValueReference>$Record.ContactId</leftValueReference>
+                <operator>IsNull</operator>
+                <rightValue>
+                    <booleanValue>false</booleanValue>
+                </rightValue>
+            </conditions>
+            <connector>
+                <targetReference>contact_update</targetReference>
+            </connector>
+            <label>Contact vs Lead</label>
+        </rules>
+    </decisions>
+    <decisions>
+        <name>Marketo_Check</name>
+        <label>Marketo Check</label>
+        <locationX>473</locationX>
+        <locationY>276</locationY>
+        <defaultConnectorLabel>Default Outcome</defaultConnectorLabel>
+        <rules>
+            <name>Marketo_Check2</name>
+            <conditionLogic>and</conditionLogic>
+            <conditions>
+                <leftValueReference>$Record.Campaign.Owner.Id</leftValueReference>
+                <operator>EqualTo</operator>
+                <rightValue>
+                    <stringValue>005Do000001p8FjIAI</stringValue>
+                </rightValue>
+            </conditions>
+            <connector>
+                <targetReference>Is_it_a_contact</targetReference>
+            </connector>
+            <label>Marketo Check</label>
+        </rules>
+    </decisions>
+    <description>This is the campaign member flow which will send a slack notification.</description>
+    <environments>Default</environments>
+    <interviewLabel>Campaign member stamp on lead/contact {!$Flow.CurrentDateTime}</interviewLabel>
+    <label>Campaign member stamp on lead/contact</label>
+    <processMetadataValues>
+        <name>BuilderType</name>
+        <value>
+            <stringValue>LightningFlowBuilder</stringValue>
+        </value>
+    </processMetadataValues>
+    <processMetadataValues>
+        <name>CanvasMode</name>
+        <value>
+            <stringValue>AUTO_LAYOUT_CANVAS</stringValue>
+        </value>
+    </processMetadataValues>
+    <processMetadataValues>
+        <name>OriginBuilderType</name>
+        <value>
+            <stringValue>LightningFlowBuilder</stringValue>
+        </value>
+    </processMetadataValues>
+    <processType>AutoLaunchedFlow</processType>
+    <recordUpdates>
+        <name>contact_update</name>
+        <label>Contact update</label>
+        <locationX>143</locationX>
+        <locationY>492</locationY>
+        <connector>
+            <targetReference>Campaign_notice_Contact</targetReference>
+        </connector>
+        <filterLogic>and</filterLogic>
+        <filters>
+            <field>Id</field>
+            <operator>EqualTo</operator>
+            <value>
+                <elementReference>$Record.ContactId</elementReference>
+            </value>
+        </filters>
+        <inputAssignments>
+            <field>Most_Recent_Marketing_Campaign_Date__c</field>
+            <value>
+                <elementReference>$Record.CreatedDate</elementReference>
+            </value>
+        </inputAssignments>
+        <inputAssignments>
+            <field>Most_Recent_Marketing_Campaign__c</field>
+            <value>
+                <elementReference>$Record.Campaign.Name</elementReference>
+            </value>
+        </inputAssignments>
+        <object>Contact</object>
+    </recordUpdates>
+    <recordUpdates>
+        <name>Lead_update</name>
+        <label>Lead update</label>
+        <locationX>407</locationX>
+        <locationY>492</locationY>
+        <connector>
+            <targetReference>Copy_1_of_Campaign_notice_Contact</targetReference>
+        </connector>
+        <filterLogic>and</filterLogic>
+        <filters>
+            <field>Id</field>
+            <operator>EqualTo</operator>
+            <value>
+                <elementReference>$Record.LeadId</elementReference>
+            </value>
+        </filters>
+        <inputAssignments>
+            <field>Most_Recent_Marketing_Campaign_Date__c</field>
+            <value>
+                <elementReference>$Record.CreatedDate</elementReference>
+            </value>
+        </inputAssignments>
+        <inputAssignments>
+            <field>Most_Recent_Marketing_Campaign__c</field>
+            <value>
+                <elementReference>$Record.Campaign.Name</elementReference>
+            </value>
+        </inputAssignments>
+        <object>Lead</object>
+    </recordUpdates>
+    <start>
+        <locationX>50</locationX>
+        <locationY>0</locationY>
+        <object>CampaignMember</object>
+        <recordTriggerType>Create</recordTriggerType>
+        <scheduledPaths>
+            <name>Delay</name>
+            <connector>
+                <targetReference>Marketo_Check</targetReference>
+            </connector>
+            <label>Delay</label>
+            <offsetNumber>1</offsetNumber>
+            <offsetUnit>Minutes</offsetUnit>
+            <recordField>CreatedDate</recordField>
+            <timeSource>RecordField</timeSource>
+        </scheduledPaths>
+        <triggerType>RecordAfterSave</triggerType>
+    </start>
+    <status>Active</status>
+    <textTemplates>
+        <name>CampaignContact</name>
+        <isViewedAsPlainText>true</isViewedAsPlainText>
+        <text>You have a contact that has engaged with marketing. {!$Record.Contact.FirstName} {!$Record.Contact.LastName} has been added to the campaign : {!$Record.Campaign.Name}
+
+Please follow up ASAP!
+
+https://mavrckinfluencermarketing.lightning.force.com/lightning/r/Contact/{!$Record.Contact.Id}/view</text>
+    </textTemplates>
+    <textTemplates>
+        <name>ContactSubject</name>
+        <isViewedAsPlainText>true</isViewedAsPlainText>
+        <text>Salesforce contact added to campaign!</text>
+    </textTemplates>
+    <textTemplates>
+        <name>LeadCampaign</name>
+        <isViewedAsPlainText>true</isViewedAsPlainText>
+        <text>You have a contact that has engaged with marketing. {!$Record.Lead.FirstName}{!$Record.Lead.LastName} has been added to the campaign : {!$Record.Campaign.Name}
+
+Please follow up ASAP!
+
+https://mavrckinfluencermarketing.lightning.force.com/lightning/r/Lead/{!$Record.Lead.Id}/view</text>
+    </textTemplates>
+    <textTemplates>
+        <name>LeadSubject</name>
+        <isViewedAsPlainText>true</isViewedAsPlainText>
+        <text>Salesforce lead added to a campaign!</text>
+    </textTemplates>
+    <textTemplates>
+        <name>SlackNoticeDemo</name>
+        <isViewedAsPlainText>true</isViewedAsPlainText>
+        <text>New Lead!
+Name: {!$Record.FirstName} {!$Record.LastName}
+Company: {!$Record.CompanyOrAccount}
+Owner: {!$Record.Lead.Owner:User.FirstName} {!$Record.Lead.Owner:User.LastName} {!$Record.Contact.Owner.FirstName} {!$Record.Contact.Owner.LastName}
+Email: {!$Record.Email}
+Phone: {!$Record.Contact.Phone_Number_form_submit__c} {!$Record.Lead.Phone_Number_form_submit__c}
+Conversion: {!$Record.Campaign.Name}
+
+https://mavrckinfluencermarketing.lightning.force.com/lightning/r/CampaignMember/{!$Record.Id}/view</text>
+    </textTemplates>
+</Flow>
